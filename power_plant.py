@@ -81,7 +81,7 @@ def power_plant_main():
         if sum(current_light_intensity) < peak_intensity:
             # We are a little off the peak, so hang out here for a while
             sleep(15 * 60)
-            #
+            # Reset peak intensity so our algorithm searches again
             peak_intensity = 0
 
 
