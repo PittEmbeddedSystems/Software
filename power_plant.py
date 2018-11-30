@@ -5,11 +5,14 @@ Main PowerPlant Application
 
 from time import sleep
 from math import sqrt
+from math import atan2
+from math import degrees
 
 from ad_interface import AD
 from ad_mcp import AdMcp3008
 from DirectionFinder import DirectionFinder
 from prox_reader import ProxReader
+from CartMoveController import CartMoveController
 
 
 def power_plant_main():
@@ -54,6 +57,8 @@ def power_plant_main():
     # Instantiate the proximity sensor reader
     proximity = ProxReader('mm')
 
+    cart = CartMoveController(20)
+
     while True:
         # Get all the light sample data
         current_light_intensity = ad_interface.get_samples()
@@ -74,7 +79,8 @@ def power_plant_main():
         clearances = proximity.measure()
 
         if all(distance > 30 for distance in clearances):
-            cart.make_a_move(next_move)
+            turn_angle = degrees(atan2(next_move[1], next_move[0]))
+            cart.make_a_move(turn_angle, 5)
 
         current_light_intensity = ad_interface.get_samples()
 
