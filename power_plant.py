@@ -14,6 +14,20 @@ from DirectionFinder import DirectionFinder
 from prox_reader import ProxReader
 from CartMoveController import CartMoveController
 
+def wake_and_shake(cart):
+    """
+    This function provides feedback that the cart is powered and booted
+    by moving around in a simple pattern.
+    """
+    cart.make_a_move(3, 0)
+    cart.make_a_move(-3, 0)
+    cart.make_a_move(3, 0)
+    cart.make_a_move(-3, 0)
+    cart.make_a_move(3, 0)
+    cart.make_a_move(-3, 0)
+    cart.make_a_move(0, 5)
+    cart.make_a_move(0, -5)
+
 
 def power_plant_main():
     """
@@ -32,7 +46,7 @@ def power_plant_main():
     """
 
     # Initialize the interface to the A/D
-    concrete_ad = AdMcp3008
+    concrete_ad = AdMcp3008()
     ad_interface = AD(concrete_ad, 8)
 
     # Initialize the locations of the light sensors
@@ -59,6 +73,8 @@ def power_plant_main():
 
     cart = CartMoveController(20)
 
+    wake_and_shake(cart)
+
     while True:
         # Get all the light sample data
         current_light_intensity = ad_interface.get_samples()
@@ -76,17 +92,20 @@ def power_plant_main():
         next_move = dfer.FindDirection(formatted_light_intensity)
 
         # Get the latest proximity data
-        clearances = proximity.measure()
+#        clearances = proximity.measure()
 
         if all(distance > 30 for distance in clearances):
-            turn_angle = degrees(atan2(next_move[1], next_move[0]))
+            turn_angle = degrees(atan2(next_move[0], next_move[1]))
+            if turn_angle > 180:
+                turn_angle = turn_angle - 360
             cart.make_a_move(turn_angle, 5)
 
         current_light_intensity = ad_interface.get_samples()
 
         if sum(current_light_intensity) < peak_intensity:
             # We are a little off the peak, so hang out here for a while
-            sleep(15 * 60)
+#            sleep(15 * 60)
+            sleep(15)
             # Reset peak intensity so our algorithm searches again
             peak_intensity = 0
 
