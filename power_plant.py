@@ -66,7 +66,8 @@ def power_plant_main():
     dfer = DirectionFinder()
 
     # Initialize the peak light intensity
-    peak_intensity = 0
+    peak_intensities = []
+    intensity_lag = 3
 
     # Instantiate the proximity sensor reader
     proximity = ProxReader('mm')
@@ -79,8 +80,6 @@ def power_plant_main():
     while True:
         # Get all the light sample data
         current_light_intensity = ad_interface.get_samples()
-        if peak_intensity < sum(current_light_intensity):
-            peak_intensity = sum(current_light_intensity)
 
         # Reformat the light sample data to append the sensor location so the
         # DirectionFinder can use it
@@ -104,15 +103,23 @@ def power_plant_main():
             print("Which is at " + str(turn_angle) + " deg")
             cart.make_a_move(turn_angle, 5)
 
-        current_light_intensity = ad_interface.get_samples()
+        recent_light_intensities.append(ad_interface.get_samples())
 
-        if sum(current_light_intensity) < peak_intensity:
+        # Make sure we only keep the most recent samples as defined by
+        # the intensity_lag constant
+        if recent_light_intensities.size() > intensity_lag:
+            recent_light_intensities.pop(0)
+
+        # If our light intensity has been decreasing over our recent samples
+        # then we probably stopped approaching the optimal lighting
+        if recent_light_intensities.size() == intensity_lag and \
+           sum(recent_light_intensities[-1]) < sum(recent_light_intensities[0]):
             # We are a little off the peak, so hang out here for a while
+            print("This spot looks good. Lets take a short break")
 #            sleep(15 * 60)
             sleep(15)
-            print("This spot looks good. Lets take a short break")
             # Reset peak intensity so our algorithm searches again
-            peak_intensity = 0
+            recent_light_intensities.clear()
 
 
 if __name__ == "__main__":
