@@ -74,6 +74,7 @@ def power_plant_main():
     cart = CartMoveController(20)
 
     wake_and_shake(cart)
+    print ("Time to find the light")
 
     while True:
         # Get all the light sample data
@@ -94,10 +95,13 @@ def power_plant_main():
         # Get the latest proximity data
 #        clearances = proximity.measure()
 
+        clearances = [ 300 ]
         if all(distance > 30 for distance in clearances):
             turn_angle = degrees(atan2(next_move[0], next_move[1]))
             if turn_angle > 180:
                 turn_angle = turn_angle - 360
+            print("next move is" + str(next_move))
+            print("Which is at " + str(turn_angle) + " deg")
             cart.make_a_move(turn_angle, 5)
 
         current_light_intensity = ad_interface.get_samples()
@@ -106,6 +110,7 @@ def power_plant_main():
             # We are a little off the peak, so hang out here for a while
 #            sleep(15 * 60)
             sleep(15)
+            print("This spot looks good. Lets take a short break")
             # Reset peak intensity so our algorithm searches again
             peak_intensity = 0
 
